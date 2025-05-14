@@ -1,0 +1,39 @@
+name: Android CI Build
+
+on:
+  push:
+    branches: [ "main", "master" ] # 触发工作流的分支，根据您的主分支名称调整
+  pull_request:
+    branches: [ "main", "master" ] # 同样，针对PR触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17' # 安卓项目通常需要JDK 17
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./app/gradlew # 确保 gradlew 有执行权限，路径可能需要根据您的项目调整
+                               # 如果您的 gradlew 在项目根目录，则是 chmod +x ./gradlew
+
+    - name: Build with Gradle
+      # 注意：这里的路径 ./app/gradlew 是假设您的gradle wrapper在app模块下
+      # 如果您的项目结构中 gradlew 在根目录，请使用 ./gradlew
+      run: ./app/gradlew -p app assembleDebug # 或者 assembleRelease，根据需要
+                                        # -p app 指向app模块的build.gradle
+
+    # 可选：上传构建产物 (APK)
+    # - name: Upload Debug APK
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: app-debug-apk
+    #     path: app/build/outputs/apk/debug/app-debug.apk # APK的实际路径
